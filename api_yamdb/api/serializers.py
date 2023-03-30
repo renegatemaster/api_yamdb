@@ -9,52 +9,39 @@ from users.models import User
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ("id",)
         model = Category
+        fields = '__all__'
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        exclude = ("id",)
         model = Genre
+        fields = '__all__'
 
 
 class TitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        slug_field="slug",
-        many=True,
+        slug_field='slug', many=True, queryset=Genre.objects.all()
     )
     category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field="slug",
+        slug_field='slug', queryset=Category.objects.all()
     )
 
     class Meta:
-        fields = "__all__"
         model = Title
+        fields = '__all__'
 
 
-class TitleGetSerializer(serializers.ModelSerializer):
-    category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(
-        read_only=True,
-        many=True,
+class ReadOnlyTitleSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(
+        source='reviews__score__avg', read_only=True
     )
-
-    class Meta:
-        fields = "__all__"
-        model = Title
-
-
-class TitleGetSerializer(serializers.ModelSerializer):
-    rating = serializers.FloatField()
-    category = CategorySerializer()
     genre = GenreSerializer(many=True)
+    category = CategorySerializer()
 
     class Meta:
         model = Title
-        fields = "__all__"
+        fields = '__all__'
 
 
 class ReviewSerializer(serializers.ModelSerializer):

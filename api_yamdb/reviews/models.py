@@ -1,8 +1,6 @@
 from django.db import models
 
-# Create your models here.
-
-
+from .validators import validate_year
 
 
 class Category(models.Model):
@@ -52,6 +50,7 @@ class Title(models.Model):
     )
     year = models.IntegerField(
         verbose_name='Дата выхода',
+        validators=[validate_year]
     )
     description = models.TextField(
         verbose_name='Описание',
