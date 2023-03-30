@@ -69,32 +69,16 @@ class ModelMixinSet(
 
 
 class CategoryViewSet(ModelMixinSet):
+    http_method_names = ['get', 'post', 'delete']
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [
         IsAdminOrReadOnly,
     ]
     filter_backends = (
-        DjangoFilterBackend,
         SearchFilter,
-        OrderingFilter,
     )
-    filterset_fields = ("name", "slug")
-    ordering_fields = ["id", "name"]
-    ordering = ["id"]
-    search_fields = (
-        "name",
-        "slug",
-    )
-    lookup_field = "slug"
-
-    def retrieve(self, request, *args, **kwargs):
-        """Проверка на получение данных"""
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def update(self, request, *args, **kwargs):
-        """Проверка на изменение данных"""
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    search_fields = ('name',)
 
 
 class GenreViewSet(ModelMixinSet):
