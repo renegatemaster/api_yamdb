@@ -6,12 +6,9 @@ from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.mixins import (
-    CreateModelMixin, DestroyModelMixin,
-    ListModelMixin)
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -32,95 +29,59 @@ from .serializers import (
     MeSerializer,
     ReviewSerializer,
     SignUpSerializer,
-    TitleGetSerializer,
+    ReadOnlyTitleSerializer,
     TitleSerializer,
     TokenSerializer,
     UserSerializer,
 )
 
 
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.annotate(rating=Avg("reviews__score")).all()
-    permission_classes = [IsAdminOrReadOnly]
-    pagination_class = PageNumberPagination
-    filter_backends = (
-        DjangoFilterBackend,
-        OrderingFilter,
-    )
-    filterset_class = TitleFilter
-    ordering_fields = ["id", "name"]
-    ordering = ["id"]
-
-    def get_serializer_class(self):
-        if self.action in ("list", "retrieve"):
-            return TitleSerializer
-        return TitleGetSerializer
-
-    def get_serializer_class(self):
-        if self.request.method in ("POST", "PATCH"):
-            return TitleSerializer
-        return TitleGetSerializer
-
-
-class ModelMixinSet(
-    CreateModelMixin, ListModelMixin, DestroyModelMixin, GenericViewSet
+class ListCreateDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
 ):
     pass
 
 
-class CategoryViewSet(ModelMixinSet):
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all().annotate(
+        Avg("reviews__score")
+    ).order_by("name")
+    serializer_class = TitleSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ("retrieve", "list"):
+            return ReadOnlyTitleSerializer
+        return TitleSerializer
+
+
+class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [
         IsAdminOrReadOnly,
     ]
     filter_backends = (
-        DjangoFilterBackend,
         SearchFilter,
-        OrderingFilter,
     )
-    filterset_fields = ("name", "slug")
-    ordering_fields = ["id", "name"]
-    ordering = ["id"]
-    search_fields = (
-        "name",
-        "slug",
-    )
-    lookup_field = "slug"
-
-    def retrieve(self, request, *args, **kwargs):
-        """Проверка на получение данных"""
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def update(self, request, *args, **kwargs):
-        """Проверка на изменение данных"""
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    search_fields = ('name',)
 
 
-class GenreViewSet(ModelMixinSet):
+class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [
         IsAdminOrReadOnly,
     ]
     filter_backends = (
-        DjangoFilterBackend,
         SearchFilter,
-        OrderingFilter,
     )
-    filterset_fields = ("name", "slug")
-    ordering_fields = ["id", "name"]
-    ordering = ["id"]
-    search_fields = ("name", "slug")
-    lookup_field = "slug"
-
-    def retrieve(self, request, *args, **kwargs):
-        """Проверка на получение данных"""
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    def update(self, request, *args, **kwargs):
-        """Проверка на изменение данных"""
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    search_fields = ('name',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
