@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, mixins
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
@@ -36,6 +36,15 @@ from .serializers import (
 )
 
 
+class ListCreateDestroyViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    pass
+
+
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         Avg("reviews__score")
@@ -51,8 +60,7 @@ class TitleViewSet(viewsets.ModelViewSet):
         return TitleSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [
@@ -64,8 +72,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [
