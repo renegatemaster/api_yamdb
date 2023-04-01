@@ -33,7 +33,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReadOnlyTitleSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(
+    rating = serializers.FloatField(
         source='reviews__score__avg', read_only=True
     )
     genre = GenreSerializer(many=True)
@@ -55,6 +55,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate_score(self, value):
+        if not isinstance(value, int):
+            raise TypeError('Введите целочисленную оценку.')
         if value < 1 or value > 10:
             raise ValidationError("Поставьте оценку от 1 до 10.")
         return value
@@ -70,8 +72,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         return data
 
     class Meta:
-        fields = "__all__"
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
+        # validators = [
+        #     serializers.UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=['title', 'author'],
+        #         message='Вы уже оставляли отзыв.'
+        #     )
+        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -81,8 +90,8 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = ("id", "text", "author", "pub_date")
-        read_only = ("review",)
+        fields = ('id', 'text', 'author', 'pub_date')
+        read_only = ('review',)
         model = Comment
 
 
