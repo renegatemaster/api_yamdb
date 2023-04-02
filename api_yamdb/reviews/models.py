@@ -1,21 +1,11 @@
 from django.db import models
 
+from core.models import ClassificationModel, PostModel
+from users.models import User
 from .validators import validate_year
 
 
-class Category(models.Model):
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=256
-    )
-    slug = models.SlugField(
-        verbose_name='Идентификатор',
-        max_length=50,
-        unique=True
-    )
-
-    def __str__(self):
-        return self.name
+class Category(ClassificationModel):
 
     class Meta:
         verbose_name = 'Категория'
@@ -23,19 +13,7 @@ class Category(models.Model):
         ordering = ['name']
 
 
-class Genre(models.Model):
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=256
-    )
-    slug = models.SlugField(
-        verbose_name='Идентификатор',
-        max_length=50,
-        unique=True
-    )
-
-    def __str__(self):
-        return self.name
+class Genre(ClassificationModel):
 
     class Meta:
         verbose_name = 'Жанр'
@@ -67,6 +45,7 @@ class Title(models.Model):
         verbose_name='Категория',
         on_delete=models.SET_NULL,
         related_name='titles',
+        null=True,
     )
     rating = models.IntegerField(
         verbose_name='Рейтинг',
@@ -99,3 +78,59 @@ class GenreTitle(models.Model):
     class Meta:
         verbose_name = 'Произведение и жанр'
         verbose_name_plural = 'Произведения и жанры'
+
+
+class Review(PostModel):
+    SCORES = [
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
+        (6, 6),
+        (7, 7),
+        (8, 8),
+        (9, 9),
+        (10, 10)
+    ]
+
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='reviews'
+    )
+    score = models.IntegerField(choices=SCORES)
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE, related_name='reviews'
+    )
+
+    class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+        ordering = ['-id']
+        # constraints = [
+        #     models.UniqueConstraint(
+        #         fields=['title', 'author'],
+        #         name='unique_title_author'
+        #     )
+        # ]
+
+    def __str__(self):
+        return (f'{self.author} отозвался о произведении '
+                f'{self.title_id}: "{self.text}".')
+
+
+class Comment(PostModel):
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE, related_name='comments'
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='comments'
+    )
+
+    class Meta:
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+        ordering = ['-id']
+
+    def __str__(self):
+        return (f'{self.author} прокомментиовал отзыв '
+                f'{self.review_id}: "{self.text}".')
