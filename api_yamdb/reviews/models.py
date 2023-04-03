@@ -106,12 +106,6 @@ class Review(PostModel):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ['-id']
-        # constraints = [
-        #     models.UniqueConstraint(
-        #         fields=['title', 'author'],
-        #         name='unique_title_author'
-        #     )
-        # ]
 
     def __str__(self):
         return (f'{self.author} отозвался о произведении '
