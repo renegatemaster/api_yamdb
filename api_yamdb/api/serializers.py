@@ -74,13 +74,6 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
-        # validators = [
-        #     serializers.UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=['title', 'author'],
-        #         message='Вы уже оставляли отзыв.'
-        #     )
-        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):

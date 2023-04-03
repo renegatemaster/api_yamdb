@@ -69,6 +69,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
         SearchFilter,
     )
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -81,12 +82,12 @@ class GenreViewSet(ListCreateDestroyViewSet):
         SearchFilter,
     )
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (AuthorAndStaffOrReadOnly,)
-    # pagination_class = CommentPagination
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
