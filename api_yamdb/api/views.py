@@ -46,15 +46,15 @@ class ListCreateDestroyViewSet(
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
-        Avg("reviews__score")
-    ).order_by("name")
+        Avg('reviews__score')
+    ).order_by('name')
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
-        if self.action in ("retrieve", "list"):
+        if self.action in ('retrieve', 'list'):
             return ReadOnlyTitleSerializer
         return TitleSerializer
 
@@ -90,11 +90,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (AuthorAndStaffOrReadOnly,)
 
     def get_queryset(self):
-        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, id=self.kwargs.get("title_id"))
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
 
@@ -104,51 +104,51 @@ class CommentViewSet(viewsets.ModelViewSet):
     pagination_class = CommentPagination
 
     def get_queryset(self):
-        review = get_object_or_404(Review, id=self.kwargs.get("review_id"))
-        return review.comments.all().order_by("id")
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
+        return review.comments.all().order_by('id')
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, id=self.kwargs.get("review_id"))
+        review = get_object_or_404(Review, id=self.kwargs.get('review_id'))
         serializer.save(author=self.request.user, review=review)
 
 
-@api_view(["POST"])
+@api_view(['POST'])
 def signup_post(request):
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data["email"]
-    username = serializer.validated_data["username"]
+    email = serializer.validated_data['email']
+    username = serializer.validated_data['username']
     try:
         user, create = User.objects.get_or_create(
             username=username, email=email)
     except IntegrityError:
         return Response(
-            "Такой логин или email уже существуют",
+            'Такой логин или email уже существуют',
             status=status.HTTP_400_BAD_REQUEST
         )
     confirmation_code = str(uuid.uuid4())
     user.confirmation_code = confirmation_code
     user.save()
     send_mail(
-        "Код подверждения",
+        'Код подверждения',
         confirmation_code,
-        ["admin@email.com"],
+        ['admin@email.com'],
         (email,),
         fail_silently=False,
     )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(['POST'])
 def token_post(request):
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data["username"]
-    confirmation_code = serializer.validated_data["confirmation_code"]
+    username = serializer.validated_data['username']
+    confirmation_code = serializer.validated_data['confirmation_code']
     user_base = get_object_or_404(User, username=username)
     if confirmation_code == user_base.confirmation_code:
         token = str(AccessToken.for_user(user_base))
-        return Response({"token": token}, status=status.HTTP_201_CREATED)
+        return Response({'token': token}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -162,31 +162,31 @@ class UserViewSet(viewsets.ModelViewSet):
         SearchFilter,
         OrderingFilter,
     )
-    search_fields = ("username",)
-    ordering_fields = ["id", "username"]
-    ordering = ["id"]
-    lookup_field = "username"
+    search_fields = ('username',)
+    ordering_fields = ['id', 'username']
+    ordering = ['id']
+    lookup_field = 'username'
 
     @action(
-        methods=["get", "patch", "put"],
+        methods=['get', 'patch', 'put'],
         detail=False,
-        url_path="me",
+        url_path='me',
         permission_classes=(IsAuthenticated,),
     )
     def get_patch_me(self, request):
         user = get_object_or_404(User,
                                  username=self.request.user
                                  )
-        serializer_data = {"instance": user,
-                           "data": request.data,
-                           "partial": False}
+        serializer_data = {'instance': user,
+                           'data': request.data,
+                           'partial': False}
 
-        if request.method == "GET":
+        if request.method == 'GET':
             serializer = MeSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        if request.method == "PATCH":
-            serializer_data["partial"] = True
+        if request.method == 'PATCH':
+            serializer_data['partial'] = True
 
         serializer = MeSerializer(**serializer_data)
         serializer.is_valid(raise_exception=True)
@@ -201,7 +201,7 @@ class UserViewSet(viewsets.ModelViewSet):
                                     partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        if request.method == "PUT":
+        if request.method == 'PUT':
             return Response(serializer.data,
                             status=status.HTTP_405_METHOD_NOT_ALLOWED)
         return Response(serializer.data, status=status.HTTP_200_OK)
