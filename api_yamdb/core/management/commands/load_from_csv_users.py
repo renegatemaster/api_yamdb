@@ -2,7 +2,10 @@ from csv import DictReader
 from django.core.management import BaseCommand
 from reviews.models import User
 
+import logging
 
+
+logger = logging.getLogger(__name__)
 db_model = User
 model_name = 'users'
 file_name = 'users.csv'
@@ -22,11 +25,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         if db_model.objects.exists():
-            print(f'{model_name} data already loaded...exiting.')
-            print(ALREDY_LOADED_ERROR_MESSAGE)
+            logger.debug(f'{model_name} data already loaded...exiting.')
+            logger.debug(ALREDY_LOADED_ERROR_MESSAGE)
             return
 
-        print(f'Loading {model_name} data . . .')
+        logger.debug(f'Loading {model_name} data . . .')
 
         try:
             with open(filepath, mode="r", encoding="utf-8-sig") as csv_file:
@@ -44,7 +47,7 @@ class Command(BaseCommand):
                     )
                     data.save()
 
-            print(f'Saved {model_name} data')
+            logger.debug(f'Saved {model_name} data')
 
         except Exception as e:
-            print(e)
+            logger.warning(e)
