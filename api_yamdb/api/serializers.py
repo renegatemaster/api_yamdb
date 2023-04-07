@@ -1,9 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.validators import UsernameValidator
 from users.models import User
 
 
@@ -87,14 +87,14 @@ class SignUpSerializer(serializers.Serializer):
         max_length=150,
         required=True,
         validators=[
-            UsernameValidator(),
+            UnicodeUsernameValidator(),
         ],
     )
 
-    def validate(self, data):
-        if data['username'] == 'me':
+    def validate_username(self, value):
+        if value.lower() == 'me':
             raise serializers.ValidationError('Нельзя использовать логин me')
-        return data
+        return value
 
     class Meta:
         fields = ('username', 'email')

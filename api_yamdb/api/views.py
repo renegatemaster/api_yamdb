@@ -18,9 +18,11 @@ from users.models import User
 
 from .paginator import CommentPagination
 from .permissions import (
-    AuthorAndStaffOrReadOnly,
     IsAdminOrReadOnly,
-    OwnerOrAdmins)
+    OwnerOrAdmins,
+    IsAuthor,
+    IsStaff
+)
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
@@ -62,12 +64,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [
-        IsAdminOrReadOnly,
-    ]
-    filter_backends = (
-        SearchFilter,
-    )
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
@@ -75,19 +73,15 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [
-        IsAdminOrReadOnly,
-    ]
-    filter_backends = (
-        SearchFilter,
-    )
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = (AuthorAndStaffOrReadOnly,)
+    permission_classes = [IsAuthor | IsStaff]
 
     def get_queryset(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
@@ -100,7 +94,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (AuthorAndStaffOrReadOnly,)
+    permission_classes = [IsAuthor | IsStaff]
     pagination_class = CommentPagination
 
     def get_queryset(self):
@@ -172,6 +166,7 @@ class UserViewSet(viewsets.ModelViewSet):
         detail=False,
         url_path='me',
         permission_classes=(IsAuthenticated,),
+        serializer_class=SignUpSerializer,
     )
     def get_patch_me(self, request):
         user = get_object_or_404(User,
