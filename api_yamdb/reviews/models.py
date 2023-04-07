@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 from core.models import ClassificationModel, PostModel
 from users.models import User
@@ -81,23 +82,15 @@ class GenreTitle(models.Model):
 
 
 class Review(PostModel):
-    SCORES = [
-        (1, 1),
-        (2, 2),
-        (3, 3),
-        (4, 4),
-        (5, 5),
-        (6, 6),
-        (7, 7),
-        (8, 8),
-        (9, 9),
-        (10, 10)
-    ]
-
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
-    score = models.IntegerField(choices=SCORES)
+    score = models.IntegerField(
+        validators=[
+            MaxValueValidator(10, 'Значение не должно быть больше 10.'),
+            MinValueValidator(1, 'Значение не должно быть меньше 1.')
+        ]
+    )
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
@@ -106,10 +99,16 @@ class Review(PostModel):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ['-id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            ),
+        ]
 
     def __str__(self):
         return (f'{self.author} отозвался о произведении '
-                f'{self.title_id}: "{self.text}".')
+                f'{self.title}: "{self.text}".')
 
 
 class Comment(PostModel):
@@ -127,4 +126,4 @@ class Comment(PostModel):
 
     def __str__(self):
         return (f'{self.author} прокомментиовал отзыв '
-                f'{self.review_id}: "{self.text}".')
+                f'{self.review}: "{self.text}".')

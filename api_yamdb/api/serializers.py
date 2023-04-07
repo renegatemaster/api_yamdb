@@ -1,9 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.validators import UsernameValidator
 from users.models import User
 
 
@@ -46,29 +46,22 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     title = serializers.SlugRelatedField(
-        slug_field="name",
+        slug_field='name',
         read_only=True,
     )
     author = serializers.SlugRelatedField(
-        slug_field="username",
+        slug_field='username',
         read_only=True,
     )
 
-    def validate_score(self, value):
-        if not isinstance(value, int):
-            raise TypeError('Введите целочисленную оценку.')
-        if value < 1 or value > 10:
-            raise ValidationError("Поставьте оценку от 1 до 10.")
-        return value
-
     def validate(self, data):
-        request = self.context["request"]
-        if request.method == "POST":
+        request = self.context['request']
+        if request.method == 'POST':
             author = request.user
-            title_id = self.context.get("view").kwargs.get("title_id")
+            title_id = self.context.get('view').kwargs.get('title_id')
             title = get_object_or_404(Title, pk=title_id)
             if Review.objects.filter(title=title, author=author).exists():
-                raise ValidationError("Может существовать только один отзыв!")
+                raise ValidationError('Может существовать только один отзыв!')
         return data
 
     class Meta:
@@ -78,7 +71,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        slug_field="username",
+        slug_field='username',
         read_only=True,
     )
 
@@ -94,17 +87,17 @@ class SignUpSerializer(serializers.Serializer):
         max_length=150,
         required=True,
         validators=[
-            UsernameValidator(),
+            UnicodeUsernameValidator(),
         ],
     )
 
-    def validate(self, data):
-        if data["username"] == "me":
-            raise serializers.ValidationError("Нельзя использовать логин me")
-        return data
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError('Нельзя использовать логин me')
+        return value
 
     class Meta:
-        fields = ("username", "email")
+        fields = ('username', 'email')
 
 
 class TokenSerializer(serializers.Serializer):
@@ -112,19 +105,19 @@ class TokenSerializer(serializers.Serializer):
     confirmation_code = serializers.CharField(required=True)
 
     class Meta:
-        fields = ("username", "confirmation_code")
+        fields = ('username', 'confirmation_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "username",
-            "email",
-            "first_name",
-            "last_name",
-            "bio",
-            "role",
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
         )
 
 
@@ -134,10 +127,10 @@ class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "username",
-            "email",
-            "first_name",
-            "last_name",
-            "bio",
-            "role",
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
         )
