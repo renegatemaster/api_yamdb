@@ -123,6 +123,18 @@ class UserSerializer(serializers.ModelSerializer):
 
 class MeSerializer(serializers.ModelSerializer):
     role = serializers.CharField(read_only=True)
+    username = serializers.CharField(
+        max_length=150,
+        required=True,
+        validators=[
+            UnicodeUsernameValidator(),
+        ],
+    )
+
+    def validate_username(self, value):
+        if value.lower() == 'me':
+            raise serializers.ValidationError('Нельзя использовать логин me')
+        return value
 
     class Meta:
         model = User
