@@ -1,16 +1,33 @@
 # API YaMDb
-
+_API для сервиса YaMDb_  <br><br>
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)![Django](https://img.shields.io/badge/django-%23092E20.svg?style=for-the-badge&logo=django&logoColor=white)![DjangoREST](https://img.shields.io/badge/DJANGO-REST-ff1709?style=for-the-badge&logo=django&logoColor=white&color=ff1709&labelColor=gray)
 ## Описание
 
 Этот проект позволяет использовать приложение YaMDb через API: просматривать различные произведения, писать на них отзывы и ставить им оценки.
 
 ## Установка
 
-Для установки необходимо:
+Клонируем репозиторий и переходим в него в командной строке:
 
- - Клонировать репозитории из GitHub с помощью команды git clone 'SSH-ключ' в терминале;
- - Создать виртуальное окружение, активировать его;
- - Установить все необходимые пакеты командой pip install -r requirements.
+```bash
+git clone git@github.com:renegatemaster/api_yamdb.git
+```
+
+Cоздаём и активируем виртуальное окружение, устанавливаем зависимости:
+
+```bash
+python3.9 -m venv venv && \ 
+    source venv/bin/activate && \
+    python -m pip install --upgrade pip && \
+    pip install -r backend/requirements.txt
+```
+
+Запускаем проект 
+
+```bash
+cd api_yamdb/
+python3 manage.py runserver
+```
 
 ## Прмиеры запросов
 
